@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       checks: write
 
     steps:
@@ -49,3 +49,14 @@ jobs:
         run: |
           echo "## Coverage" >> $GITHUB_STEP_SUMMARY
           go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate coverage HTML
+        run: go tool cover -html=coverage.out -o coverage.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          include_files: coverage.html
