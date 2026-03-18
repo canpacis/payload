@@ -32,3 +32,11 @@ jobs:
         with:
           name: test-results
           path: test-results.xml
+
+      - name: Test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Go Tests
+          path: test-results.xml
+          reporter: java-junit
