@@ -1,0 +1,801 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>payload: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/canpacis/payload/decoder.go (78.8%)</option>
+				
+				<option value="file1">github.com/canpacis/payload/payload.go (89.8%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package payload
+
+import (
+        "errors"
+        "fmt"
+        "reflect"
+        "strconv"
+        "strings"
+)
+
+// UnmarshalerError is returned when a type's custom unmarshaler interface
+// method (e.g. [HeaderUnmarshaler], [CookieUnmarshaler]) returns an error.
+// It wraps the original error and records the raw string value that was being
+// decoded along with the type of the unmarshaler that failed.
+type UnmarshalerError struct {
+        // Err is the underlying error returned by the unmarshaler.
+        Err error
+        // Value is the raw string that the unmarshaler was given.
+        Value string
+        // Unmarshaler is the reflect.Type of the struct field whose unmarshaler failed.
+        Unmarshaler reflect.Type
+}
+
+// Error implements the error interface. Returns an empty string if Err is nil.
+func (e *UnmarshalerError) Error() string <span class="cov1" title="1">{
+        if e.Err == nil </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">return "payload: unmarshaler " + e.Unmarshaler.Name() + " failed to unmarshal value '" + e.Value + "': " + e.Err.Error()</span>
+}
+
+// Unwrap returns the underlying error, allowing [errors.Is] and [errors.As]
+// to inspect the error chain.
+func (e *UnmarshalerError) Unwrap() error <span class="cov1" title="1">{
+        return e.Err
+}</span>
+
+// InvalidUnmarshalError describes an invalid argument passed to [decode].
+// The argument must be a non-nil pointer to a struct; any other value
+// (nil, non-pointer, pointer to non-struct) produces this error.
+type InvalidUnmarshalError struct {
+        // Type is the reflect.Type of the invalid argument, or nil if the
+        // argument itself was nil.
+        Type reflect.Type
+}
+
+// Error implements the error interface, reporting why the argument was invalid.
+func (e *InvalidUnmarshalError) Error() string <span class="cov1" title="1">{
+        if e.Type == nil </span><span class="cov1" title="1">{
+                return "payload: Unmarshal(nil)"
+        }</span>
+
+        <span class="cov0" title="0">if e.Type.Kind() != reflect.Pointer </span><span class="cov0" title="0">{
+                return "payload: Unmarshal(non-pointer " + e.Type.String() + ")"
+        }</span>
+
+        <span class="cov0" title="0">if e.Type.Elem().Kind() != reflect.Struct </span><span class="cov0" title="0">{
+                return "payload: Unmarshal(non-struct " + e.Type.String() + ")"
+        }</span>
+
+        <span class="cov0" title="0">return "payload: Unmarshal(nil " + e.Type.String() + ")"</span>
+}
+
+// UnmarshalTypeError describes a value that cannot be assigned or converted to
+// a particular Go type. It mirrors the equivalent error in [encoding/json].
+type UnmarshalTypeError struct {
+        // Value is a human-readable description of the source value
+        // (e.g. "bool", "array", "number -5").
+        Value string
+        // Type is the Go type that the value could not be assigned to.
+        Type reflect.Type
+        // Struct is the name of the struct containing the problematic field.
+        Struct string
+        // Field is the name of the struct field that could not be populated.
+        Field string
+}
+
+// Error implements the error interface. When Struct and Field are set it
+// produces a field-qualified message; otherwise it produces a type-only message.
+func (e *UnmarshalTypeError) Error() string <span class="cov2" title="2">{
+        typ := "&lt;nil&gt;"
+        if e.Type != nil </span><span class="cov0" title="0">{
+                typ = e.Type.String()
+        }</span>
+        <span class="cov2" title="2">if e.Struct != "" || e.Field != "" </span><span class="cov1" title="1">{
+                return "payload: cannot unmarshal " + e.Value + " into Go struct field " + e.Struct + "." + e.Field + " of type " + typ
+        }</span>
+        <span class="cov1" title="1">return "payload: cannot unmarshal " + e.Value + " into Go value of type " + typ</span>
+}
+
+// kinds maps primitive [reflect.Kind] values to string-parsing functions.
+// Each function parses a raw string into the corresponding Go numeric type.
+// It is used as a fallback when a target field has no registered type decoder
+// and does not implement a source-specific unmarshaler interface.
+var kinds = map[reflect.Kind]func(string) (any, error){
+        reflect.Int: func(s string) (any, error) <span class="cov4" title="10">{
+                n, err := strconv.ParseInt(s, 10, 0)
+                if err != nil </span><span class="cov3" title="4">{
+                        return nil, err
+                }</span>
+                <span class="cov4" title="6">return int(n), nil</span>
+        },
+        reflect.Int8: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseInt(s, 10, 8)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return int8(n), nil</span>
+        },
+        reflect.Int16: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseInt(s, 10, 16)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return int16(n), nil</span>
+        },
+        reflect.Int32: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseInt(s, 10, 32)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return int32(n), nil</span>
+        },
+        reflect.Int64: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseInt(s, 10, 64)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return int64(n), nil</span>
+        },
+        reflect.Uint: func(s string) (any, error) <span class="cov2" title="3">{
+                n, err := strconv.ParseUint(s, 10, 0)
+                if err != nil </span><span class="cov1" title="1">{
+                        return nil, err
+                }</span>
+                <span class="cov2" title="2">return uint(n), nil</span>
+        },
+        reflect.Uint8: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseUint(s, 10, 8)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return uint8(n), nil</span>
+        },
+        reflect.Uint16: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseUint(s, 10, 16)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return uint16(n), nil</span>
+        },
+        reflect.Uint32: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseUint(s, 10, 32)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return uint32(n), nil</span>
+        },
+        reflect.Uint64: func(s string) (any, error) <span class="cov1" title="1">{
+                n, err := strconv.ParseUint(s, 10, 64)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return uint64(n), nil</span>
+        },
+        reflect.Float32: func(s string) (any, error) <span class="cov2" title="3">{
+                f, err := strconv.ParseFloat(s, 32)
+                if err != nil </span><span class="cov1" title="1">{
+                        return nil, err
+                }</span>
+                <span class="cov2" title="2">return float32(f), nil</span>
+        },
+        reflect.Float64: func(s string) (any, error) <span class="cov2" title="3">{
+                f, err := strconv.ParseFloat(s, 64)
+                if err != nil </span><span class="cov1" title="1">{
+                        return nil, err
+                }</span>
+                <span class="cov2" title="2">return f, nil</span>
+        },
+        reflect.Bool: func(s string) (any, error) <span class="cov0" title="0">{
+                ls := strings.ToLower(s)
+                switch ls </span>{
+                case "true", "1":<span class="cov0" title="0">
+                        return true, nil</span>
+                case "false", "0":<span class="cov0" title="0">
+                        return false, nil</span>
+                default:<span class="cov0" title="0">
+                        return nil, fmt.Errorf("parsing \"%s\": invalid syntax", s)</span>
+                }
+        },
+}
+
+// types holds per-[reflect.Type] string-parsing functions registered via
+// [RegisterType]. These take precedence over the built-in [kinds] parsers and
+// are consulted before falling back to kind-level coercion.
+var types = map[reflect.Type]func(string) (any, error){}
+
+// RegisterType registers a custom string-parsing function for the concrete type
+// of t. When [decode] encounters a struct field of that type and cannot satisfy
+// it through direct assignment, conversion, or an unmarshaler interface, it
+// calls decoder to convert the raw string into a value of type T.
+//
+// RegisterType is typically called during program initialisation (e.g. from an
+// init function) for types such as time.Time or custom ID types that need
+// bespoke parsing logic.
+//
+// Example:
+//
+//        payload.RegisterType(time.Time{}, func(s string) (time.Time, error) {
+//            return time.Parse(time.RFC3339, s)
+//        })
+func RegisterType[T any](t T, decoder func(string) (T, error)) <span class="cov1" title="1">{
+        types[reflect.TypeOf(t)] = func(s string) (any, error) </span><span class="cov1" title="1">{
+                return decoder(s)
+        }</span>
+}
+
+// sentinel errors used internally by [set] to signal the category of failure
+// without allocating a full error value. They are translated into the
+// appropriate exported error types by [decode].
+var (
+        // errType signals that the source value's type is incompatible with the
+        // destination field and no coercion path was found.
+        errType = errors.New("type error")
+        // errInvalid signals that the destination field cannot be set (e.g.
+        // unexported or otherwise unsettable via reflection).
+        errInvalid = errors.New("invalid error")
+)
+
+// decode is the core reflection-driven decoder used by all source-specific
+// decoders in this package. It iterates over the exported fields of the struct
+// pointed to by v, looks up each field's value using getter (keyed by the
+// field's struct tag named key), and assigns the result to the field.
+//
+// Type parameter T is the source-specific unmarshaler interface (e.g.
+// [HeaderUnmarshaler]). When a field's type implements T, unmarshal is called
+// to allow custom parsing logic; otherwise [set] attempts direct assignment,
+// type conversion, a registered [RegisterType] parser, or a built-in [kinds]
+// parser, in that order.
+//
+// decode returns [*InvalidUnmarshalError] if v is not a non-nil pointer to a
+// struct, [*UnmarshalTypeError] if a field's type is incompatible with the
+// source value, and [*UnmarshalerError] if a custom unmarshaler returns an
+// error.
+func decode[T any](v any, key string, getter func(string) any, unmarshal func(T, string) error) error <span class="cov8" title="77">{
+        rv := reflect.ValueOf(v)
+
+        if rv.Kind() != reflect.Pointer || rv.IsNil() </span><span class="cov2" title="2">{
+                return &amp;InvalidUnmarshalError{Type: reflect.TypeOf(v)}
+        }</span>
+
+        <span class="cov8" title="75">rv = reflect.Indirect(rv)
+        rt := rv.Type()
+        if rv.Kind() != reflect.Struct </span><span class="cov1" title="1">{
+                return &amp;InvalidUnmarshalError{Type: rt}
+        }</span>
+
+        <span class="cov8" title="74">for i := range rv.NumField() </span><span class="cov10" title="185">{
+                field := rt.Field(i)
+                value := rv.Field(i)
+
+                if !field.IsExported() </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                <span class="cov10" title="185">tag, ok := field.Tag.Lookup(key)
+                if !ok </span><span class="cov8" title="103">{
+                        continue</span>
+                }
+
+                <span class="cov8" title="82">target := getter(tag)
+                if target == nil </span><span class="cov4" title="7">{
+                        continue</span>
+                }
+
+                <span class="cov8" title="75">tv := reflect.ValueOf(target)
+                if tv.IsZero() </span><span class="cov6" title="30">{
+                        continue</span>
+                }
+
+                <span class="cov7" title="45">if err := set(value, tv, unmarshal); err != nil </span><span class="cov4" title="10">{
+                        if errors.Is(err, errType) </span><span class="cov1" title="1">{
+                                return &amp;UnmarshalTypeError{
+                                        Value:  tv.Type().Name(),
+                                        Type:   field.Type,
+                                        Struct: rt.Name(),
+                                        Field:  field.Name,
+                                }
+                        }</span> else<span class="cov4" title="9"> if errors.Is(err, errInvalid) </span><span class="cov0" title="0">{
+                                return &amp;InvalidUnmarshalError{Type: field.Type}
+                        }</span> else<span class="cov4" title="9"> {
+                                return &amp;UnmarshalerError{
+                                        Err:         err,
+                                        Value:       tv.String(),
+                                        Unmarshaler: field.Type,
+                                }
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="64">return nil</span>
+}
+
+// set attempts to assign target to value using a cascade of strategies:
+//
+//  1. Direct assignment — if target's type is directly assignable to value's type.
+//  2. Unmarshaler interface — if value (or a pointer to it) implements T,
+//     unmarshal is called with the target's string representation.
+//  3. Conversion — if target's type can be converted to value's type.
+//  4. Registered type decoder — if a decoder has been registered for value's
+//     exact type via [RegisterType], it is used to parse the string.
+//  5. Built-in kind decoder — if value's kind has an entry in [kinds], it is
+//     used to parse the string, and set is called recursively with the result.
+//
+// set returns [errType] if no coercion path exists, and [errInvalid] if value
+// cannot be set. Any error from an unmarshaler or parser is returned directly
+// and will be wrapped by [decode] into the appropriate exported error type.
+func set[T any](value, target reflect.Value, unmarshal func(T, string) error) error <span class="cov8" title="66">{
+        if !value.CanSet() </span><span class="cov0" title="0">{
+                return errInvalid
+        }</span>
+        <span class="cov8" title="66">if target.Type().AssignableTo(value.Type()) </span><span class="cov7" title="34">{
+                value.Set(target)
+                return nil
+        }</span>
+
+        <span class="cov6" title="32">canT := true
+        valueAsT, ok := value.Interface().(T)
+        if !ok </span><span class="cov6" title="32">{
+                valueAsT, ok = value.Addr().Interface().(T)
+                if !ok </span><span class="cov6" title="29">{
+                        canT = false
+                }</span>
+        }
+        <span class="cov6" title="32">targetAsStr, ok := target.Interface().(string)
+        if !ok </span><span class="cov0" title="0">{
+                if target.Type().ConvertibleTo(value.Type()) </span><span class="cov0" title="0">{
+                        value.Set(target.Convert(value.Type()))
+                        return nil
+                }</span>
+                <span class="cov0" title="0">return errType</span>
+        } else<span class="cov6" title="32"> {
+                if canT </span><span class="cov2" title="3">{
+                        return unmarshal(valueAsT, targetAsStr)
+                }</span>
+                // Cannot unmarshal via interface; try registered type or kind parsers.
+                <span class="cov6" title="29">typ, ok := types[value.Type()]
+                if !ok </span><span class="cov6" title="28">{
+                        kind, ok := kinds[value.Type().Kind()]
+                        if !ok </span><span class="cov1" title="1">{
+                                return errType
+                        }</span>
+                        <span class="cov6" title="27">coerced, err := kind(targetAsStr)
+                        if err != nil </span><span class="cov4" title="7">{
+                                return err
+                        }</span>
+                        <span class="cov6" title="20">return set(value, reflect.ValueOf(coerced), unmarshal)</span>
+                }
+
+                <span class="cov1" title="1">coerced, err := typ(targetAsStr)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov1" title="1">return set(value, reflect.ValueOf(coerced), unmarshal)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// Package payload provides utilities for decoding HTTP request data into Go
+// structs. It supports extracting values from headers, cookies, query
+// parameters, path parameters, and request bodies (JSON, XML, and
+// URL-encoded forms). Each source is handled by a dedicated decoder, and
+// all sources can be decoded together in a single pass via [RequestDecoder].
+//
+// Struct fields are mapped to their respective HTTP source using struct tags
+// (e.g. `header:"X-My-Header"`, `cookie:"session"`, `query:"page"`). Types
+// that need custom parsing logic can implement the corresponding unmarshaler
+// interface for their source (e.g. [HeaderUnmarshaler], [CookieUnmarshaler]).
+//
+// Custom body content types beyond JSON, XML, and form encoding can be
+// registered globally via [RegisterContentType] or per-decoder via
+// [RequestDecoder.RegisterContentType].
+package payload
+
+import (
+        "encoding/json"
+        "encoding/xml"
+        "errors"
+        "fmt"
+        "net/http"
+        "net/url"
+        "slices"
+        "strings"
+)
+
+// Decoder is the common interface implemented by all source-specific decoders
+// in this package. Decode populates v with values extracted from the decoder's
+// underlying source. v should be a pointer to a struct whose fields are
+// annotated with the appropriate struct tags for the source being decoded.
+type Decoder interface {
+        Decode(any) error
+}
+
+// HeaderDecoder decodes HTTP request headers into a struct. Struct fields are
+// mapped to header names via `header` struct tags.
+type HeaderDecoder struct {
+        header http.Header
+}
+
+// NewHeaderDecoder returns a [HeaderDecoder] that reads from the provided
+// [http.Header].
+func NewHeaderDecoder(h http.Header) *HeaderDecoder <span class="cov8" title="24">{
+        return &amp;HeaderDecoder{header: h}
+}</span>
+
+// HeaderUnmarshaler can be implemented by types that require custom logic when
+// being decoded from an HTTP header value. UnmarshalHeader receives the raw
+// header string and is responsible for parsing it into the receiver.
+type HeaderUnmarshaler interface {
+        UnmarshalHeader(string) error
+}
+
+// Decode populates v with values from the HTTP headers. Fields on v must be
+// tagged with `header:"&lt;header-name&gt;"` to be mapped. If a field's type
+// implements [HeaderUnmarshaler], that method is called instead of the default
+// string conversion.
+func (d *HeaderDecoder) Decode(v any) error <span class="cov7" title="23">{
+        return decode(v, "header", func(key string) any </span><span class="cov8" title="25">{
+                return d.header.Get(key)
+        }</span>, func(u HeaderUnmarshaler, s string) error <span class="cov3" title="3">{
+                return u.UnmarshalHeader(s)
+        }</span>)
+}
+
+// UnmarshalHeader is a convenience function that decodes the provided
+// [http.Header] into v. It is equivalent to calling
+// [NewHeaderDecoder](h).Decode(v).
+func UnmarshalHeader(h http.Header, v any) error <span class="cov6" title="11">{
+        return NewHeaderDecoder(h).Decode(v)
+}</span>
+
+// CookieGetter is an interface for retrieving a named cookie. It is satisfied
+// by [*http.Request].
+type CookieGetter interface {
+        Cookie(string) (*http.Cookie, error)
+}
+
+// CookieDecoder decodes HTTP cookies into a struct. Struct fields are mapped
+// to cookie names via `cookie` struct tags.
+type CookieDecoder struct {
+        getter CookieGetter
+}
+
+// NewCookieDecoder returns a [CookieDecoder] that reads cookies via the
+// provided [CookieGetter]. An [*http.Request] satisfies this interface
+// directly.
+func NewCookieDecoder(getter CookieGetter) *CookieDecoder <span class="cov7" title="17">{
+        return &amp;CookieDecoder{getter: getter}
+}</span>
+
+// CookieUnmarshaler can be implemented by types that require custom logic when
+// being decoded from a cookie value. UnmarshalCookie receives the raw cookie
+// string and is responsible for parsing it into the receiver.
+type CookieUnmarshaler interface {
+        UnmarshalCookie(string) error
+}
+
+// Decode populates v with values from cookies. Fields on v must be tagged with
+// `cookie:"&lt;cookie-name&gt;"` to be mapped. Missing cookies are silently skipped.
+// If a field's type implements [CookieUnmarshaler], that method is called
+// instead of the default string conversion.
+func (d *CookieDecoder) Decode(v any) error <span class="cov7" title="16">{
+        return decode(v, "cookie", func(key string) any </span><span class="cov6" title="13">{
+                cookie, err := d.getter.Cookie(key)
+                if err != nil </span><span class="cov5" title="7">{
+                        return nil
+                }</span>
+                <span class="cov4" title="6">return cookie.Value</span>
+        }, func(u CookieUnmarshaler, s string) error <span class="cov0" title="0">{
+                return u.UnmarshalCookie(s)
+        }</span>)
+}
+
+// UnmarshalCookie is a convenience function that decodes cookies from getter
+// into v. It is equivalent to calling [NewCookieDecoder](getter).Decode(v).
+func UnmarshalCookie(getter CookieGetter, v any) error <span class="cov4" title="4">{
+        return NewCookieDecoder(getter).Decode(v)
+}</span>
+
+// QueryDecoder decodes URL query parameters (or form values) into a struct.
+// Struct fields are mapped to parameter names via the struct tag key stored
+// in the decoder (default: "query"; "form" when decoding POST form values).
+type QueryDecoder struct {
+        // key is the struct tag name used to identify fields for this decoder
+        // (e.g. "query" or "form").
+        key   string
+        query url.Values
+}
+
+// NewQueryDecoder returns a [QueryDecoder] that reads from the provided
+// [url.Values]. The struct tag key defaults to "query".
+func NewQueryDecoder(q url.Values) *QueryDecoder <span class="cov8" title="25">{
+        return &amp;QueryDecoder{key: "query", query: q}
+}</span>
+
+// QueryUnmarshaler can be implemented by types that require custom logic when
+// being decoded from a URL query parameter value. UnmarshalQuery receives the
+// raw parameter string and is responsible for parsing it into the receiver.
+type QueryUnmarshaler interface {
+        UnmarshalQuery(string) error
+}
+
+// Decode populates v with values from the URL query parameters. Fields on v
+// must be tagged with `query:"&lt;param-name&gt;"` (or `form:"&lt;param-name&gt;"` when
+// used for form decoding) to be mapped. If a field's type implements
+// [QueryUnmarshaler], that method is called instead of the default string
+// conversion.
+func (d *QueryDecoder) Decode(v any) error <span class="cov7" title="23">{
+        return decode(v, d.key, func(key string) any </span><span class="cov9" title="39">{
+                return d.query.Get(key)
+        }</span>, func(u QueryUnmarshaler, s string) error <span class="cov0" title="0">{
+                return u.UnmarshalQuery(s)
+        }</span>)
+}
+
+// UnmarshalQuery is a convenience function that decodes the provided
+// [url.Values] into v. It is equivalent to calling
+// [NewQueryDecoder](q).Decode(v).
+func UnmarshalQuery(q url.Values, v any) error <span class="cov5" title="9">{
+        return NewQueryDecoder(q).Decode(v)
+}</span>
+
+// PathGetter is an interface for retrieving named URL path parameters. It is
+// satisfied by [*http.Request] (via [http.Request.PathValue], available in
+// Go 1.22+).
+type PathGetter interface {
+        PathValue(string) string
+}
+
+// PathDecoder decodes URL path parameters into a struct. Struct fields are
+// mapped to path parameter names via `path` struct tags.
+type PathDecoder struct {
+        getter PathGetter
+}
+
+// NewPathDecoder returns a [PathDecoder] that reads path values via the
+// provided [PathGetter]. An [*http.Request] satisfies this interface directly.
+func NewPathDecoder(getter PathGetter) *PathDecoder <span class="cov7" title="16">{
+        return &amp;PathDecoder{getter: getter}
+}</span>
+
+// PathUnmarshaler can be implemented by types that require custom logic when
+// being decoded from a URL path parameter value. UnmarshalPath receives the
+// raw parameter string and is responsible for parsing it into the receiver.
+type PathUnmarshaler interface {
+        UnmarshalPath(string) error
+}
+
+// Decode populates v with values from the URL path parameters. Fields on v
+// must be tagged with `path:"&lt;param-name&gt;"` to be mapped. If a field's type
+// implements [PathUnmarshaler], that method is called instead of the default
+// string conversion.
+func (d *PathDecoder) Decode(v any) error <span class="cov7" title="15">{
+        return decode(v, "path", func(key string) any </span><span class="cov4" title="5">{
+                return d.getter.PathValue(key)
+        }</span>, func(u PathUnmarshaler, s string) error <span class="cov0" title="0">{
+                return u.UnmarshalPath(s)
+        }</span>)
+}
+
+// UnmarshalPath is a convenience function that decodes path parameters from
+// getter into v. It is equivalent to calling
+// [NewPathDecoder](getter).Decode(v).
+func UnmarshalPath(getter PathGetter, v any) error <span class="cov3" title="3">{
+        return NewPathDecoder(getter).Decode(v)
+}</span>
+
+// RequestDecoder decodes an entire [*http.Request] into a struct in a single
+// pass. It extracts values from headers, cookies, query parameters, and path
+// parameters unconditionally, and additionally decodes the request body for
+// POST, PUT, PATCH, and DELETE requests with a non-empty body.
+//
+// Built-in body content types:
+//   - application/json        — decoded via [encoding/json]
+//   - application/xml         — decoded via [encoding/xml]
+//   - application/x-www-form-urlencoded — decoded via [QueryDecoder] with `form` tags
+//
+// Additional content types can be registered via [RegisterContentType] or
+// [RequestDecoder.RegisterContentType].
+type RequestDecoder struct {
+        req          *http.Request
+        contentTypes map[string]Decoder
+}
+
+// NewRequestDecoder returns a [RequestDecoder] for the given request with an
+// empty content-type registry. Use [RegisterContentType] to register custom
+// body decoders globally, or [RequestDecoder.RegisterContentType] to register
+// them on this instance only.
+func NewRequestDecoder(req *http.Request) *RequestDecoder <span class="cov6" title="13">{
+        return &amp;RequestDecoder{req: req, contentTypes: map[string]Decoder{}}
+}</span>
+
+var ErrUnsupportedContentType = errors.New("unsupported content type")
+
+// Decode populates v from the request by running each applicable decoder in
+// sequence: headers, cookies, query params, path params, and (for methods with
+// a body) the request body. Decoders are applied in that order, so later
+// sources can overwrite values set by earlier ones.
+//
+// Returns an error if body parsing fails or if the request's Content-Type is
+// not recognised and has no registered decoder.
+func (d *RequestDecoder) Decode(v any) error <span class="cov6" title="13">{
+        decoders := []Decoder{
+                NewHeaderDecoder(d.req.Header),
+                NewCookieDecoder(d.req),
+                NewQueryDecoder(d.req.URL.Query()),
+                NewPathDecoder(d.req),
+        }
+
+        bodyMethods := []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete}
+        if slices.Contains(bodyMethods, d.req.Method) &amp;&amp; d.req.ContentLength != 0 </span><span class="cov6" title="10">{
+                contentType := d.req.Header.Get("Content-Type")
+                switch true </span>{
+                case strings.Contains(contentType, "application/json"):<span class="cov4" title="6">
+                        decoders = append(decoders, json.NewDecoder(d.req.Body))</span>
+                case strings.Contains(contentType, "application/xml"):<span class="cov1" title="1">
+                        decoders = append(decoders, xml.NewDecoder(d.req.Body))</span>
+                case contentType == "application/x-www-form-urlencoded", contentType == "application/www-form-urlencoded":<span class="cov1" title="1">
+                        if err := d.req.ParseForm(); err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov1" title="1">decoder := NewQueryDecoder(d.req.PostForm)
+                        decoder.key = "form"
+                        decoders = append(decoders, decoder)</span>
+                // TODO: handle multipart formdata
+                // case strings.Contains(contentType, "multipart/form-data"):
+                default:<span class="cov2" title="2">
+                        decoder, ok := d.contentTypes[contentType]
+                        if !ok </span><span class="cov1" title="1">{
+                                return fmt.Errorf("payload: %w \"%s\"", ErrUnsupportedContentType, contentType)
+                        }</span>
+                        <span class="cov1" title="1">decoders = append(decoders, decoder)</span>
+                }
+        }
+
+        <span class="cov6" title="12">for _, decoder := range decoders </span><span class="cov10" title="57">{
+                if err := decoder.Decode(v); err != nil </span><span class="cov1" title="1">{
+                        return err
+                }</span>
+        }
+        <span class="cov6" title="11">return nil</span>
+}
+
+// RegisterContentType associates a [Decoder] with a MIME type on this
+// specific [RequestDecoder] instance. When the request's Content-Type matches
+// typ, decoder will be used to decode the body. This takes precedence over
+// the built-in decoders only for types not already handled natively (JSON,
+// XML, form-encoded).
+func (d *RequestDecoder) RegisterContentType(typ string, decoder Decoder) <span class="cov1" title="1">{
+        d.contentTypes[typ] = decoder
+}</span>
+
+// defaultContentTypes holds globally registered content-type decoders used by
+// [UnmarshalRequest].
+var defaultContentTypes = map[string]Decoder{}
+
+// RegisterContentType registers a [Decoder] for the given MIME type in the
+// global content-type registry. Decoders registered here are used by
+// [UnmarshalRequest] for any request whose Content-Type matches typ.
+// This is safe to call at program initialisation (e.g. from an init function).
+func RegisterContentType(typ string, decoder Decoder) <span class="cov0" title="0">{
+        defaultContentTypes[typ] = decoder
+}</span>
+
+// UnmarshalRequest is a convenience function that decodes the entire request
+// into v using a [RequestDecoder] initialised with the global content-type
+// registry. It is equivalent to:
+//
+//        decoder := NewRequestDecoder(req)
+//        decoder.contentTypes = defaultContentTypes
+//        decoder.Decode(v)
+func UnmarshalRequest(req *http.Request, v any) error <span class="cov6" title="12">{
+        decoder := NewRequestDecoder(req)
+        decoder.contentTypes = defaultContentTypes
+        return decoder.Decode(v)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

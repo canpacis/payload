@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="54" failures="0" errors="0" time="0.006862">
+	<testsuite tests="54" failures="0" time="0.007000" name="github.com/canpacis/payload" timestamp="2026-03-18T16:15:08Z">
+		<properties>
+			<property name="go.version" value="go1.25.7 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder/all_fields_populated" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder/missing_optional_headers_–_zero_values_kept" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder/partial_headers" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder/invalid_int" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder/invalid_float" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder/unmarshaler_error" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder_InvalidArgument/nil" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder_InvalidArgument/non-pointer_string" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder_InvalidArgument/pointer_to_non-struct" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestHeaderDecoder_InvalidArgument" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestCookieDecoder/all_cookies_present" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestCookieDecoder/no_cookies_–_zero_values" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestCookieDecoder/missing_cookie_skipped" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestCookieDecoder/invalid_int_cookie" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestCookieDecoder" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestQueryDecoder/all_params_present" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestQueryDecoder/empty_query_–_zero_values" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestQueryDecoder/invalid_int" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestQueryDecoder/invalid_uint" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestQueryDecoder/invalid_float" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestQueryDecoder/first_value_used_when_multiple_values_for_same_key" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestQueryDecoder" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestPathDecoder/all_path_params_present" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestPathDecoder/empty_params_–_zero_values" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestPathDecoder/invalid_int_path_param" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestPathDecoder" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_GET/query_+_header_+_cookie" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_GET/empty_request_–_zero_values" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_GET" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/JSON_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/JSON_body_with_charset" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/XML_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/form-urlencoded_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/PUT_with_JSON_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/PATCH_with_JSON_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/DELETE_with_JSON_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/GET_ignores_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/unsupported_content_type" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body/invalid_JSON_body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_Body" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_RegisterContentType/instance-level_registration" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRequestDecoder_RegisterContentType" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestDecode_UnmarshalTypeError" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestDecode_UnmarshalerError" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRegisterType/value_is_uppercased_via_registered_type" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRegisterType/empty_value_skipped_–_zero_kept" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestRegisterType" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestErrorMessages/UnmarshalerError_nil_inner" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestErrorMessages/InvalidUnmarshalError_nil_type" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestErrorMessages/UnmarshalTypeError_with_struct_and_field" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestErrorMessages/UnmarshalTypeError_without_struct/field" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestErrorMessages" time="0.000000"></testcase>
+		<testcase classname="github.com/canpacis/payload" name="TestNumericKinds" time="0.000000"></testcase>
+	</testsuite>
+</testsuites>
