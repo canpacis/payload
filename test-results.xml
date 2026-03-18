@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="54" failures="0" errors="0" time="0.006862">
-	<testsuite tests="54" failures="0" time="0.007000" name="github.com/canpacis/payload" timestamp="2026-03-18T16:15:08Z">
+<testsuites tests="54" failures="0" errors="0" time="0.005161">
+	<testsuite tests="54" failures="0" time="0.005000" name="github.com/canpacis/payload" timestamp="2026-03-18T16:18:47Z">
 		<properties>
 			<property name="go.version" value="go1.25.7 linux/amd64"></property>
 		</properties>
