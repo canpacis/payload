@@ -43,3 +43,9 @@ jobs:
           name: Go Tests
           path: test-results.xml
           reporter: java-junit
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo "## Coverage" >> $GITHUB_STEP_SUMMARY
+          go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
