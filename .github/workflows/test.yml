@@ -51,7 +51,7 @@ jobs:
           go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
 
       - name: Generate coverage HTML
-        run: go tool cover -html=coverage.out -o coverage.html
+        run: go tool cover -html=coverage.out -o index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -59,4 +59,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           publish_branch: gh-pages
-          include_files: coverage.html
+          include_files: index.html
